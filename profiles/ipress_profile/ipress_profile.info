@@ -1,0 +1,11 @@
+name = Ipress
+description = Install profile for Ipress themes
+version = VERSION
+core = 7.x
+
+files[] = ipress_profile.profile
+
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "Ipress"
+datestamp = "1365027012"

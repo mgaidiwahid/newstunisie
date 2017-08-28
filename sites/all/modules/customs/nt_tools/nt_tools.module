@@ -1,0 +1,48 @@
+<?php
+
+
+function nt_tools_node_presave($node) {
+  
+    $node->original = isset($node->original) ? $node->original : NULL;
+	
+	if($node->type == "blog") {
+	
+	$source= $node->field_source['und'][0]['value'];
+
+	$cdata = $node->body['und'][0]['value'];
+	$url_image = getImgSrc($cdata);
+
+	if( $source == "RSS Shems FM") $url_image = str_replace("small","big",$url_image);
+
+    $body_witout_img = preg_replace("/<img[^>]+\>/i", "", $cdata); 
+	
+	
+	$pathinfo = pathinfo($url_image);
+    $downloaded_image = 'public://'.$pathinfo['filename'].'.'.$pathinfo['extension'];
+
+	
+    copy($url_image, $downloaded_image);
+
+    $image_file_temp = file_get_contents($downloaded_image);
+    $file = file_save_data($image_file_temp, $downloaded_image,FILE_EXISTS_REPLACE);
+
+    $body_witout_img = preg_replace('~<style(.*?)</style>~Usi', "", $body_witout_img);
+	$node->body[$node->language][0]['value']= trim(strip_tags($body_witout_img));
+    $node->field_link_image[$node->language][0]['value']= $url_image;
+
+	$node->field_image['und'][0] = (array) $file;
+	}
+
+}
+
+function getImgSrc($html)
+{
+	$doc = new DOMDocument();
+	$doc->loadHTML($html);
+	$xpath = new DOMXPath($doc);
+	$src = $xpath->evaluate("string(//img/@src)");
+	
+	return $src;
+}
+
+?>
