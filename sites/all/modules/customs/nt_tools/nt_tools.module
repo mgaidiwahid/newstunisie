@@ -7,30 +7,60 @@ function nt_tools_node_presave($node) {
 	
 	if($node->type == "blog") {
 	
-	$source= $node->field_source['und'][0]['value'];
+	$source = $node->field_source['und'][0]['value'];
+     
+		if($source == "http://www.assarih.com") {
+	    $cdata = $node->body['und'][0]['value'];
+	    $url_image = getImgSrc($cdata);
+		
+		$tab = explode("/",$url_image);
+		
+		$url_image = str_replace("thumb/thumb_img.jpg","img.jpg",$url_image);
 
-	$cdata = $node->body['und'][0]['value'];
-	$url_image = getImgSrc($cdata);
+		$url_image = "http://www.assarih.com/".$url_image;
+		//print_r($url_image);die();
+		$pathinfo = pathinfo($url_image);
+		$downloaded_image = 'public://assarih/'.$tab[1].'_'.$pathinfo['filename'].'.'.$pathinfo['extension'];
+		
+		copy($url_image, $downloaded_image);
 
-	if( $source == "RSS Shems FM") $url_image = str_replace("small","big",$url_image);
-
-    $body_witout_img = preg_replace("/<img[^>]+\>/i", "", $cdata); 
+		$image_file_temp = file_get_contents($downloaded_image);
+		$file = file_save_data($image_file_temp, $downloaded_image,FILE_EXISTS_REPLACE);		
+		$node->field_link_image[$node->language][0]['value']= $url_image;
+		
+		$cdata = preg_replace("/<img[^>]+\>/i", "", $cdata); 
+        $node->body[$node->language][0]['value']= $cdata;
+		
+		$node->field_image['und'][0] = (array) $file;		
+		}
+		
+		
+		
+		if( $source == "RSS Shems FM") {
+			
+	    $cdata = $node->body['und'][0]['value'];
+	    $url_image = getImgSrc($cdata);
 	
-	
-	$pathinfo = pathinfo($url_image);
-    $downloaded_image = 'public://'.$pathinfo['filename'].'.'.$pathinfo['extension'];
+		$url_image = str_replace("small","big",$url_image);
 
-	
-    copy($url_image, $downloaded_image);
+		$body_witout_img = preg_replace("/<img[^>]+\>/i", "", $cdata); 
+		
+		
+		$pathinfo = pathinfo($url_image);
+		$downloaded_image = 'public://'.$pathinfo['filename'].'.'.$pathinfo['extension'];
 
-    $image_file_temp = file_get_contents($downloaded_image);
-    $file = file_save_data($image_file_temp, $downloaded_image,FILE_EXISTS_REPLACE);
+		
+		copy($url_image, $downloaded_image);
 
-    $body_witout_img = preg_replace('~<style(.*?)</style>~Usi', "", $body_witout_img);
-	$node->body[$node->language][0]['value']= trim(strip_tags($body_witout_img));
-    $node->field_link_image[$node->language][0]['value']= $url_image;
+		$image_file_temp = file_get_contents($downloaded_image);
+		$file = file_save_data($image_file_temp, $downloaded_image,FILE_EXISTS_REPLACE);
 
-	$node->field_image['und'][0] = (array) $file;
+		$body_witout_img = preg_replace('~<style(.*?)</style>~Usi', "", $body_witout_img);
+		$node->body[$node->language][0]['value']= trim(strip_tags($body_witout_img));
+		$node->field_link_image[$node->language][0]['value']= $url_image;
+
+		$node->field_image['und'][0] = (array) $file;
+		}
 	}
 
 }
